@@ -2,143 +2,101 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Random;
-import javax.sound.sampled.*;
-import java.io.File;
 
 public class Magic8Ball extends JFrame {
 
-    JTextField questionBox;
-    JLabel answerText;
-    JLabel ball;
+    JTextField questionField;
+    JLabel answerLabel, ballLabel;
     JButton askButton;
+    Timer shakeTimer;
 
-    Timer timer;
-    int count = 0;
-    int startX = 150;
-
-    Clip shakeSound;
-    Clip answerSound;
+    int shakeCount = 0;
+    int xPos = 150;
 
     String[] answers = {
-            "Yes!",
-            "No!",
-            "Maybe...",
-            "Ask again later.",
-            "Definitely!",
-            "I don't think so.",
-            "Signs say yes.",
-            "Very doubtful."
+            "Yes, definitely!",
+            "No way!",
+            "Ask again later...",
+            "It is certain.",
+            "Very doubtful.",
+            "Signs point to yes.",
+            "Better not tell you now.",
+            "Absolutely not."
     };
 
     public Magic8Ball() {
-
-        // Window settings
-        setTitle("Magic 8 Ball");
+        setTitle("Magic 8 Ball Fortune Teller");
         setSize(400, 350);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(null);
 
-        // Instruction text
-        JLabel instruction = new JLabel("Ask a Yes or No Question:");
+        JLabel instruction = new JLabel("Ask a Yes/No Question:");
         instruction.setBounds(100, 20, 200, 20);
+
+        questionField = new JTextField();
+        questionField.setBounds(50, 45, 300, 25);
+
+        ballLabel = new JLabel("🎱");
+        ballLabel.setFont(new Font("Arial", Font.BOLD, 50));
+        ballLabel.setBounds(xPos, 80, 100, 100);
+
+        answerLabel = new JLabel("Your fortune will appear here", JLabel.CENTER);
+        answerLabel.setBounds(50, 180, 300, 30);
+
+        askButton = new JButton("Ask the Ball");
+        askButton.setBounds(130, 230, 140, 30);
+
         add(instruction);
-
-        // Text field
-        questionBox = new JTextField();
-        questionBox.setBounds(50, 45, 300, 25);
-        add(questionBox);
-
-        // Press ENTER to ask
-        questionBox.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                shakeBall();
-            }
-        });
-
-        // Magic 8 ball
-        ball = new JLabel("🎱");
-        ball.setFont(new Font("Arial", Font.BOLD, 50));
-        ball.setBounds(startX, 80, 100, 100);
-        add(ball);
-
-        // Answer label
-        answerText = new JLabel("Your answer will appear here", JLabel.CENTER);
-        answerText.setBounds(50, 180, 300, 30);
-        add(answerText);
-
-        // Ask button
-        askButton = new JButton("Ask");
-        askButton.setBounds(150, 230, 100, 30);
+        add(questionField);
+        add(ballLabel);
+        add(answerLabel);
         add(askButton);
 
-        askButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                shakeBall();
-            }
-        });
-
-        // Load sounds
-        loadSounds();
+        askButton.addActionListener(e -> startShaking());
 
         setVisible(true);
     }
 
-    // Load sound files
-    void loadSounds() {
-        try {
-            shakeSound = AudioSystem.getClip();
-            shakeSound.open(AudioSystem.getAudioInputStream(new File("shake.wav")));
-
-            answerSound = AudioSystem.getClip();
-            answerSound.open(AudioSystem.getAudioInputStream(new File("answer.wav")));
-        } catch (Exception e) {
-            System.out.println("Sound files missing");
-        }
-    }
-
-    // Shake animation
-    void shakeBall() {
-
-        if (questionBox.getText().equals("")) {
-            JOptionPane.showMessageDialog(this, "Please type a question!");
+    void startShaking() {
+        if (questionField.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a question!");
             return;
         }
 
-        count = 0;
+        shakeCount = 0;
         askButton.setEnabled(false);
-        answerText.setText("Shaking...");
+        answerLabel.setText("Shaking...");
 
-        if (shakeSound != null) {
-            shakeSound.setFramePosition(0);
-            shakeSound.start();
-        }
-
-        timer = new Timer(100, new ActionListener() {
+        shakeTimer = new Timer(100, new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
-
-                if (count % 2 == 0) {
-                    ball.setLocation(startX - 10, 80);
+                if (shakeCount % 2 == 0) {
+                    ballLabel.setLocation(xPos - 10, 80);
                 } else {
-                    ball.setLocation(startX + 10, 80);
+                    ballLabel.setLocation(xPos + 10, 80);
                 }
 
-                count++;
+                shakeCount++;
 
-                if (count == 12) {
-                    timer.stop();
-                    ball.setLocation(startX, 80);
+                if (shakeCount == 12) {
+                    shakeTimer.stop();
+                    ballLabel.setLocation(xPos, 80);
                     showAnswer();
                     askButton.setEnabled(true);
                 }
             }
         });
 
-        timer.start();
+        shakeTimer.start();
     }
 
-    // Show random answer
     void showAnswer() {
-        Random rand = new Random();
-        int number = rand.nextInt(answers.length);
-        answerText.setText(a
+        Random random = new Random();
+        answerLabel.setText(answers[random.nextInt(answers.length)]);
+    }
+
+    public static void main(String[] args) {
+        new Magic8Ball();
+    }
+}
